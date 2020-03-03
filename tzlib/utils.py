@@ -135,7 +135,7 @@ def centerAxis(obj):
 
 
 def setObjectColor(obj, c):
-    obj[c4d.ID_BASEOBJECT_USECOLOR] = 2
+    obj[c4d.ID_BASEOBJECT_USECOLOR] = 1
     obj[c4d.ID_BASEOBJECT_COLOR] = c
 
 
@@ -795,6 +795,25 @@ def makePoly(pl, fl=None):
     g.Message(c4d.MSG_UPDATE)
     return g
 
+
+def makePoly2(pl, fl=None):
+    pc = len(pl)
+    if not fl:
+        if pc == 3:
+            fl = (c4d.CPolygon(0, 1, 2),)
+        elif pc == 4:
+            fl = (c4d.CPolygon(0, 1, 2, 3),)
+    if not fl:
+        return None
+
+    g = c4d.PolygonObject(pc, len(fl))
+    g.SetAllPoints(pl)
+
+    for i, f in enumerate(fl):
+        g.SetPolygon(i, f)
+
+    g.Message(c4d.MSG_UPDATE)
+    return g
 
 def copyPoly(f, t):
     pl = f.GetAllPoints()
