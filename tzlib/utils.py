@@ -41,6 +41,8 @@ class RandomValue(object):
         elif isinstance(self.d, (float, int)):
             self.t = "fixed"
             self.get = self.gf_fixed
+        else:
+            raise Exception("RandomValue: type error")
 
     def gf_choice(self, rd):
         return rd.choice(self.d)
@@ -814,6 +816,7 @@ def makePoly2(pl, fl=None):
 
     g.Message(c4d.MSG_UPDATE)
     return g
+
 
 def copyPoly(f, t):
     pl = f.GetAllPoints()
