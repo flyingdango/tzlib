@@ -25,6 +25,7 @@ class DIR(object):
     out = c4d.Vector(0, 0, -1)
     zero = c4d.Vector(0)
     fx4 = ((-1, 0), (1, 0), (0, 1), (0, -1))
+    fx6 = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
     fx4c = ((1, 1), (1, -1), (-1, 1), (-1, -1))
 
 
@@ -57,12 +58,37 @@ class RandomValue(object):
         return self.t + ":" + str(self.d)
 
 
+def sampleField(fo, pl, doc, s_type=0):
+    pc = len(pl)
+    type_flag_l = [c4d.FIELDSAMPLE_FLAG_VALUE, c4d.FIELDSAMPLE_FLAG_DIRECTION,
+                   c4d.FIELDSAMPLE_FLAG_COLOR, c4d.FIELDSAMPLE_FLAG_ROTATION]
+    type_flag = type_flag_l[s_type]
+    in_put = c4d.modules.mograph.FieldInput(pl, pc)
+    info = c4d.modules.mograph.FieldInfo.Create(type_flag, c4d.threading.GeGetCurrentThread(), doc, 0, 1, in_put)
+    output = c4d.modules.mograph.FieldOutput()
+    output.Resize(pc, type_flag)
+    #
+    fo.InitSampling(info)
+    fo.Sample(in_put, output.GetBlock(), info, c4d.FIELDOBJECTSAMPLE_FLAG_DISABLEDIRECTIONFALLOFF)
+    fo.FreeSampling(info)
+    #
+    return output
+
+
 def vector2matrix(zv):
     return utils.HPBToMatrix(utils.VectorToHPB(zv))
 
 
 def clamp(v, minv, maxv):
     return max(min(v, maxv), minv)
+
+
+def sortMinMax(a, b):
+    return min(a, b), max(a, b)
+
+
+def getMid3(a, b, c):
+    return max(min(a, b), min(b, c), min(a, c))
 
 
 def avg(l):
