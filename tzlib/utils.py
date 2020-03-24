@@ -301,16 +301,16 @@ def getSplinePlane(s):
     return -1, None, 0
 
 
-def realSplineOffset(s, r, doc):
+def realSplineOffset(s, r, doc, tmpn=None):
     plane, move, sp = getSplinePlane(s)
     if plane == -1:
         raise Exception("not flat plane")
     ta = (2, 0, 1)[plane]
-    cs = CSTO(s, doc)
+    cs = getState(s, doc)
     if cs is None:
         raise Exception("error CSTO spline")
     e = c4d.BaseObject(5116)
-    e[c4d.EXTRUDEOBJECT_MOVE] = move * 1000
+    e[c4d.EXTRUDEOBJECT_MOVE] = move * 100
     e[c4d.CAPSANDBEVELS_CAP_ENABLE_END] = False
     e[c4d.CAPSANDBEVELS_STARTBEVEL_TYPE] = 3
     e[c4d.CAPSANDBEVELS_STARTBEVEL_OFFSET] = -r
@@ -318,14 +318,15 @@ def realSplineOffset(s, r, doc):
     e[c4d.CAPSANDBEVELS_AVOIDINTERSECTION] = True
     e[c4d.CAPSANDBEVELS_CAP_TYPE] = 2
     cs.InsertUnderLast(e)
-    # return e
     # csto extrude
-    c4d.EventAdd()
     doc.InsertObject(e)
+    c4d.EventAdd()
     eo = CSTO(e, doc)
     e.Remove()
     if eo is None:
         raise Exception("error CSTO extrude")
+    if tmpn:
+        eo.InsertUnder(tmpn)
     fc = eo.GetPolygonCount()
     if fc == 0:
         raise Exception("no polygon found")
@@ -352,12 +353,11 @@ def realSplineOffset(s, r, doc):
     rs = edge2Spline(eo, doc)
     if not rs:
         raise Exception("edge2spline failed")
-    # rs = CSTO(rs, doc)这一步外部进行
     rs[c4d.SPLINEOBJECT_CLOSED] = True
     return rs
 
 
-def splineMask(s1, s2, doc, mode=1, plane=0):
+def splineMask(s1, s2, doc, mode=1, plane=0, tmpn=None):
     # mode:0:并,1:1-2,2:2-1,3:交;4:交反,5:割
     # plane:0:xy,1:zy,2:xz
     sm = c4d.BaseObject(1019396)
@@ -368,13 +368,14 @@ def splineMask(s1, s2, doc, mode=1, plane=0):
     t2 = s2.GetClone()
     t1.InsertUnderLast(sm)
     t2.InsertUnderLast(sm)
-    # doc.InsertObject(sm)
-    rs = tzu.getSpline(sm, doc)
-    # sm.Remove()
+    if tmpn:
+        sm.InsertUnder(tmpn)
+    rs = CSTO(sm, doc)
     return rs
 
 
 def splineMask2(s1, s2list, doc, mode=1, plane=0):
+    # 此函数极其诡异,生成器第一次运行无效(None),要刷新几次以后才会正常
     if not isinstance(s2list, list):
         s2list = [s2list]
     BOOL_PLANE = [c4d.SPLINEBOOL_AXIS_XY, c4d.SPLINEBOOL_AXIS_ZY, c4d.SPLINEBOOL_AXIS_XZ]
