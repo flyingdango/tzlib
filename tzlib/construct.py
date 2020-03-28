@@ -323,19 +323,34 @@ def getAllNgons(obj, nb=None, fl=None, nec=None, nts=None):
         nts = getNgonTrans(obj)
     tmp = []
     el = []
+    e_dict = {}
     for tfil in nts:
         # get all visiable edge
         tel = []
         teil = []
         for fi in tfil:
             f = fl[fi]
-            pf = nb.GetPolyInfo(fi)
+            #pf = nb.GetPolyInfo(fi)
             for ei in xrange(4):
                 if ei == 2 and f.c == f.d:
                     continue
                 if nec[fi] & (1 << ei) != 0:
                     continue
                 a, b = getCPolyEdge(f, ei)
+                #
+                tek = str(a) + "_" + str(b)
+                tek2 = str(b) + "_" + str(a)
+                if tek in e_dict:
+                    te, edgeIndex = e_dict[tek]
+                elif tek2 in e_dict:
+                    te, edgeIndex = e_dict[tek2]
+                else:
+                    te, edgeIndex = Edge(a, b), len(el)
+                    el.append(te)
+                    e_dict[tek] = (te, edgeIndex)
+                teil.append(edgeIndex)
+                tel.append(te)
+                """
                 edgeIndex = hasEdgeAB(a, b, el)
                 if edgeIndex == -1:
                     te = Edge(a, b)
@@ -345,7 +360,7 @@ def getAllNgons(obj, nb=None, fl=None, nec=None, nts=None):
                     te = el[edgeIndex]
                     teil.append(edgeIndex)
                 tel.append(te)
-
+                """
         tpil = [tel[0].a, tel[0].b]
         tsl = set([0])
         tsp = tel[0].b
